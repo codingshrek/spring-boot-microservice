@@ -49,4 +49,6 @@ public class ProductAggregate {
     public ServiceAddresses getServiceAddresses() {
         return serviceAddresses;
     }
+
+
 }

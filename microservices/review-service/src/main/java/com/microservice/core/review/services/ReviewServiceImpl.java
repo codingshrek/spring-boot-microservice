@@ -25,6 +25,11 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public Review createReview(Review body) {
+        return null;
+    }
+
+    @Override
     public List<Review> getReviews(int productId) {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
@@ -42,5 +47,10 @@ public class ReviewServiceImpl implements ReviewService {
         LOG.debug("/reviews response size: {}", list.size());
 
         return list;
+    }
+
+    @Override
+    public void deleteReviews(int productId) {
+
     }
 }

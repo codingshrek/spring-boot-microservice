@@ -61,6 +61,11 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         reviewServiceUrl         = "http://" + reviewServiceHost + ":" + reviewServicePort + "/review?productId=";
     }
 
+    @Override
+    public Product createProduct(Product body) {
+        return null;
+    }
+
     public Product getProduct(int productId) {
 
         try {
@@ -88,6 +93,11 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                 throw ex;
             }
         }
+    }
+
+    @Override
+    public void deleteProduct(int productId) {
+
     }
 
     private String getErrorMessage(HttpClientErrorException ex) {
