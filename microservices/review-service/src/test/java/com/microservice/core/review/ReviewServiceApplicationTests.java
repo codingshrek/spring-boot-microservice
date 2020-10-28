@@ -5,7 +5,8 @@ import com.microservice.api.core.product.Product;
 import com.microservice.api.core.review.Review;
 import com.microservice.core.review.persistence.ReviewRepository;
 import org.junit.Before;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import  org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +22,6 @@ import static reactor.core.publisher.Mono.just;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		"spring.datasource.url=jdbc:h2:mem:review-db"})
-
 public class ReviewServiceApplicationTests {
 
 	@Autowired

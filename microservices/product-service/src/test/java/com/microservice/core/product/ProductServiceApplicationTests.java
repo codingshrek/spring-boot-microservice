@@ -3,6 +3,7 @@ package com.microservice.core.product;
 import com.microservice.api.core.product.Product;
 import com.microservice.core.product.persistence.ProductRepository;
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,6 @@ import static reactor.core.publisher.Mono.just;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})
-
-
 class ProductServiceApplicationTests {
 	@Autowired
 	private WebTestClient client;
@@ -30,7 +29,7 @@ class ProductServiceApplicationTests {
 	@Autowired
 	private ProductRepository repository;
 
-	@Before
+	@BeforeEach
 	public void setupDb() {
 		repository.deleteAll();
 	}

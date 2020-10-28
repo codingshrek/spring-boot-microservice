@@ -5,6 +5,7 @@ import com.microservice.api.core.product.ProductService;
 import com.microservice.core.product.persistence.ProductEntity;
 import com.microservice.core.product.persistence.ProductRepository;
 import com.microservice.util.exceptions.InvalidInputException;
+import com.microservice.util.exceptions.NotFoundException;
 import com.microservice.util.http.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class ProductServiceImpl implements ProductService {
         LOG.debug("/Return found product for prodictId={}",productId);
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
-        ProductEntity entity=repository.findByProductId(productId).orElseThrow(()-> new InvalidInputException("No Product found for product id :-"+productId));
+        ProductEntity entity=repository.findByProductId(productId).orElseThrow(()-> new NotFoundException("No product found for productId: "+productId));
         Product response= mapper.entityToApi(entity);
         response.setServiceAddress(util.getServiceAddress());
         return response;

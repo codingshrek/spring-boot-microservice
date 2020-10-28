@@ -4,6 +4,7 @@ import com.microservice.core.product.persistence.ProductEntity;
 import com.microservice.core.product.persistence.ProductRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -76,13 +77,10 @@ public class PersistenceTests {
         assertEqualsProduct(savedEntity, entity.get());
     }
 
-    @Test
+    @Test(expected = DuplicateKeyException.class)
     public void duplicateError() {
-
-            ProductEntity entity = new ProductEntity(savedEntity.getProductId(), "n", 1);
-            repository.save(entity);
-
-
+        ProductEntity entity = new ProductEntity(savedEntity.getProductId(), "n", 1);
+        repository.save(entity);
     }
 
     @Test
