@@ -6,17 +6,18 @@ import com.microservice.api.core.review.Review;
 import com.microservice.composite.product.services.ProductCompositeIntegration;
 import com.microservice.util.exceptions.InvalidInputException;
 import com.microservice.util.exceptions.NotFoundException;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-
+import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -40,11 +41,13 @@ class CompositeServiceApplicationTests {
     @BeforeEach
     public void setUp() {
         when(integrationMockBean.getProduct(PRODUCT_ID_OK)).
-                thenReturn(new Product(PRODUCT_ID_OK, "name", 1, "mock-address"));
+                thenReturn(Mono.just(new Product(PRODUCT_ID_OK, "name", 1, "mock-address")));
+
         when(integrationMockBean.getRecommendations(PRODUCT_ID_OK)).
-                thenReturn(Collections.singletonList(new Recommendation(PRODUCT_ID_OK, 1, "author", 1, "content", "mock address")));
+                thenReturn(Flux.fromIterable(singletonList(new Recommendation(PRODUCT_ID_OK, 1, "author", 1, "content", "mock address"))));
+
         when(integrationMockBean.getReviews(PRODUCT_ID_OK)).
-                thenReturn(Collections.singletonList(new Review(PRODUCT_ID_OK, 1, "author", "subject", "content", "mock address")));
+                thenReturn(Flux.fromIterable(singletonList(new Review(PRODUCT_ID_OK, 1, "author", "subject", "content", "mock address"))));
 
         when(integrationMockBean.getProduct(PRODUCT_ID_NOT_FOUND)).thenThrow(new NotFoundException("NOT FOUND: " + PRODUCT_ID_NOT_FOUND));
 

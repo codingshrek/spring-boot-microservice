@@ -1,29 +1,15 @@
 package com.microservice.core.product;
 
-import com.microservice.api.core.product.Product;
-import com.microservice.core.product.persistence.ProductRepository;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.reactive.server.WebTestClient;
-
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertFalse;
-
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static reactor.core.publisher.Mono.just;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})
+/*@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})*/
 class ProductServiceApplicationTests {
-	@Autowired
+
+	/*@Autowired
 	private WebTestClient client;
 
 	@Autowired
@@ -136,4 +122,6 @@ class ProductServiceApplicationTests {
 				.expectStatus().isEqualTo(expectedStatus)
 				.expectBody();
 	}
+
+	 */
 }
