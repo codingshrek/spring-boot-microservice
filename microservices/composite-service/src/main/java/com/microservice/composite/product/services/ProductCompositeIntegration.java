@@ -7,6 +7,7 @@ import com.microservice.api.core.recommendation.Recommendation;
 import com.microservice.api.core.recommendation.RecommendationService;
 import com.microservice.api.core.review.Review;
 import com.microservice.api.core.review.ReviewService;
+import com.microservice.api.event.Event;
 import com.microservice.util.exceptions.InvalidInputException;
 import com.microservice.util.exceptions.NotFoundException;
 import com.microservice.util.http.HttpErrorInfo;
@@ -14,7 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
+import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -22,14 +27,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import static reactor.core.publisher.Flux.empty;
-
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import static org.springframework.http.HttpMethod.GET;
+import static reactor.core.publisher.Flux.empty;
 
 @Component
 public class ProductCompositeIntegration implements ProductService, RecommendationService, ReviewService {
@@ -43,12 +44,12 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private final String recommendationServiceUrl;
     private final String reviewServiceUrl;
     private final WebClient webClient;
-
+    private MessageSources messageSources;
     @Autowired
     public ProductCompositeIntegration(WebClient.Builder webClient,
         RestTemplate restTemplate,
         ObjectMapper mapper,
-
+        MessageSources messageSources,
         @Value("${app.product-service.host}") String productServiceHost,
         @Value("${app.product-service.port}") int    productServicePort,
 
@@ -61,7 +62,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
         this.webClient = webClient.build();
         this.restTemplate = restTemplate;
-
+        this.messageSources=messageSources;
         this.mapper = mapper;
 
         productServiceUrl        = "http://" + productServiceHost + ":" + productServicePort + "/product/";
@@ -69,21 +70,36 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         reviewServiceUrl         = "http://" + reviewServiceHost + ":" + reviewServicePort + "/review?productId=";
     }
 
+
+
+
+    public interface MessageSources{
+
+        String OUTPUT_PRODUCTS = "output-products";
+        String OUTPUT_RECOMMENDATIONS = "output-recommendations";
+        String OUTPUT_REVIEWS = "output-reviews";
+
+        @Output(OUTPUT_PRODUCTS)
+        MessageChannel outputProducts();
+
+        @Output(OUTPUT_RECOMMENDATIONS)
+        MessageChannel outputRecommendations();
+
+        @Output(OUTPUT_REVIEWS)
+        MessageChannel outputReviews();
+    }
+
+
+
+
+
+
+
+
     @Override
     public Product createProduct(Product body) {
-
-        try {
-            String url = productServiceUrl;
-            LOG.debug("Will post a new product to URL: {}", url);
-
-            Product product = restTemplate.postForObject(url, body, Product.class);
-            LOG.debug("Created a product with id: {}", product.getProductId());
-
-            return product;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+       messageSources.outputProducts().send(MessageBuilder.withPayload(new Event(Event.Type.CREATE,body.getProductId(),body)).build());
+       return body;
     }
 
     @Override
@@ -97,15 +113,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public void deleteProduct(int productId) {
-        try {
-            String url = productServiceUrl + "/" + productId;
-            LOG.debug("Will call the deleteProduct API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputProducts().send(MessageBuilder.withPayload(new Event(Event.Type.DELETE,productId,null)).build());
     }
 
     private String getErrorMessage(HttpClientErrorException ex) {
@@ -118,19 +126,8 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public Recommendation createRecommendation(Recommendation body) {
-
-        try {
-            String url = recommendationServiceUrl;
-            LOG.debug("Will post a new recommendation to URL: {}", url);
-
-            Recommendation recommendation = restTemplate.postForObject(url, body, Recommendation.class);
-            LOG.debug("Created a recommendation with id: {}", recommendation.getProductId());
-
-            return recommendation;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRecommendations().send(MessageBuilder.withPayload(new Event(Event.Type.CREATE, body.getProductId(), body)).build());
+        return body;
     }
 
     @Override
@@ -146,32 +143,13 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public void deleteRecommendations(int productId) {
-        try {
-            String url = recommendationServiceUrl + "?productId=" + productId;
-            LOG.debug("Will call the deleteRecommendations API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputRecommendations().send(MessageBuilder.withPayload(new Event(Event.Type.DELETE, productId, null)).build());
     }
 
     @Override
     public Review createReview(Review body) {
-
-        try {
-            String url = reviewServiceUrl;
-            LOG.debug("Will post a new review to URL: {}", url);
-
-            Review review = restTemplate.postForObject(url, body, Review.class);
-            LOG.debug("Created a review with id: {}", review.getProductId());
-
-            return review;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputReviews().send(MessageBuilder.withPayload(new Event(Event.Type.CREATE, body.getProductId(), body)).build());
+        return body;
     }
 
     @Override
@@ -188,15 +166,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public void deleteReviews(int productId) {
-        try {
-            String url = reviewServiceUrl + "?productId=" + productId;
-            LOG.debug("Will call the deleteReviews API on URL: {}", url);
-
-            restTemplate.delete(url);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+        messageSources.outputReviews().send(MessageBuilder.withPayload(new Event(Event.Type.DELETE, productId, null)).build());
     }
 
 
@@ -240,6 +210,28 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                 return ex;
         }
     }
+
+
+
+    public ReactiveHealthIndicator getProductHealth() {
+        return getHealth(productServiceUrl);
+    }
+
+    public Mono<Health> getRecommendationHealth() {
+        return getHealth(recommendationServiceUrl);
+    }
+
+    public Mono<Health> getReviewHealth() {
+        return getHealth(reviewServiceUrl);
+    }
+
+   /* private Mono<ReactiveHealthIndicator> getHealth(String url) {
+        url += "/actuator/health";
+        LOG.debug("Will call the Health API on URL: {}", url);
+        return webClient.get().uri(url).retrieve().bodyToMono(String.class).map(s->s);
+
+
+    }*/
 
     private String getErrorMessage(WebClientResponseException ex) {
         try {
